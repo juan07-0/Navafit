@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NAVA TECNOFIT - Tecnología que te cuida, privacidad que te protege</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              400: '#2dd4bf',
+              500: '#14b8a6',
+              600: '#0d9488',
+              800: '#115e59',
+              900: '#134e4a',
+              950: '#042f2e'
+            },
+            accent: {
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              950: '#082f49'
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Hoja de Estilos Externa -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body id="appBody" class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-teal-500 selection:text-white transition-colors duration-300">
+
+  <!-- TOP APP HEADER -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Brand -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('inicio')">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 via-brand-500 to-accent-400 flex items-center justify-center shadow-md shadow-brand-500/20 text-slate-950">
+          <i class="fa-solid fa-shield-halved text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base sm:text-lg tracking-tight flex items-center gap-2 text-white">
+            NAVA <span class="text-brand-400 font-semibold text-xs px-2 py-0.5 rounded-full bg-brand-950/90 border border-brand-500/30">TECNOFIT</span>
+          </h1>
+          <p class="text-[10px] sm:text-xs text-slate-400 font-medium tracking-wide hidden xs:block">
+            Tecnología que te cuida, privacidad que te protege
+          </p>
+        </div>
+      </div>
+
+      <!-- Header Controls -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Quick Sync Button -->
+        <button onclick="syncSensorData()" class="px-2.5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition" title="Sincronizar pod">
+          <i id="sync-icon" class="fa-solid fa-rotate"></i>
+          <span class="hidden md:inline">Sincronizar</span>
+        </button>
+
+        <div class="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+          <i class="fa-solid fa-location-slash text-xs"></i>
+          <span>Sin GPS</span>
+        </div>
+
+        <!-- SELECTOR DE COLOR PERSONALIZADO CON BOTÓN GUARDAR -->
+        <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-800 border border-slate-700">
+          <div class="relative w-8 h-8 rounded-xl overflow-hidden cursor-pointer" title="Elegir color personalizado">
+            <input type="color" id="customColorPicker" value="#14b8a6" class="absolute -top-4 -left-4 w-16 h-16 cursor-pointer opacity-0" aria-label="Elegir color personalizado">
+            <div id="colorPreviewBox" class="w-full h-full bg-teal-500 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-inner pointer-events-none">🎨</div>
+          </div>
+          <button onclick="saveAndApplyColor()" class="px-3 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-slate-950 font-extrabold text-xs transition shadow-sm" id="btnSaveColor">
+            Guardar
+          </button>
+        </div>
+
+        <button onclick="openSOSModal()" class="px-3.5 py-2 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-lg shadow-rose-600/30 transition transform active:scale-95">
+          <i class="fa-solid fa-triangle-exclamation animate-pulse"></i>
+          <span class="hidden sm:inline">SOLICITAR AYUDA</span>
+          <span class="sm:hidden">SOS</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="app-toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-brand-500 text-slate-950 font-bold text-xs shadow-2xl flex items-center gap-2 pointer-events-none">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toast-message">Notificación</span>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 pb-28 sm:pb-16 space-y-6">
+
+    <!-- BANNER DE PRIVACIDAD -->
+    <div id="privacy-guarantee-banner" class="glass-card rounded-3xl p-4 sm:p-5 border-l-4 border-l-brand-500 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition">
+      <div class="flex items-start gap-3.5">
+        <div class="p-3 bg-brand-500/20 text-brand-400 rounded-2xl text-xl flex-shrink-0">
+          <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <div>
+          <h2 class="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+            🔒 Sin GPS — Tu ubicación no está siendo monitoreada
+          </h2>
+          <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+            Las prendas procesan la biometría localmente. Ninguna envía rastreo continuo en tiempo real.
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+        <button onclick="switchTab('perfil'); scrollTabTo('privacy-settings-section')" class="w-full md:w-auto px-4 py-2 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs rounded-xl transition text-center shadow-md">
+          Ajustes de Privacidad
+        </button>
+        <button onclick="dismissPrivacyBanner()" class="p-2 text-slate-400 hover:text-slate-200" title="Cerrar aviso">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- SECCIÓN INICIO -->
+    <section id="tab-inicio" class="tab-view active space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+            Hola, Alex <span class="animate-bounce">👋</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Bienvenido a tu panel de salud y bienestar de ropa inteligente.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="calibrateCurrentPod()" id="btn-calibrate" class="px-3.5 py-2 rounded-2xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-compass-drafting"></i> <span>Calibrar Sensores</span>
+          </button>
+          <button onclick="toggleDashboardEditMode()" id="btn-edit-dashboard" class="px-3.5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-brand-500"></i>
+            <span id="edit-dashboard-text">Personalizar</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-shirt text-brand-500"></i> Mis Prendas Conectadas
+          </h3>
+          <span class="text-xs text-brand-400 font-semibold">Toca una prenda para ponerla En Uso</span>
+        </div>
+        <div class="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2" id="garments-carousel"></div>
+      </div>
+
+      <div id="card-mi-estado" class="glass-card rounded-3xl p-6 relative overflow-hidden transition-all duration-300 border-l-4 border-l-emerald-500">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div id="estado-icon-box" class="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-3xl font-black shadow-lg flex-shrink-0">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mi Estado Hoy</span>
+                <span id="badge-estado-general" class="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/30">Prenda En Uso</span>
+              </div>
+              <h3 id="estado-title" class="text-2xl font-black text-white mt-0.5">Bienestar Fisiológico Óptimo ✓</h3>
+              <p id="estado-subtitle" class="text-xs text-slate-300 mt-1">
+                Monitoreo activo por la prenda: <strong id="active-garment-label-card" class="text-brand-400">Uniforme Escolar Inteligente</strong>.
+              </p>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 w-full md:w-auto text-center">
+            <div class="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+              <p class="text-[10px] text-slate-400 font-semibold">Signos</p>
+              <p class="text-xs font-bold text-emerald-400 mt-0.5">❤️ Rangos OK</p>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+              <p class="text-[10px] text-slate-400 font-semibold">Hidratación</p>
+              <p class="text-xs font-bold text-accent-400 mt-0.5">💧 Estable</p>
+            </div>
+            <div class="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-800">
+              <p class="text-[10px] text-slate-400 font-semibold">Actividad</p>
+              <p class="text-xs font-bold text-amber-400 mt-0.5">⚡ Moderada</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-grid-2 text-brand-500"></i> Resumen de Funciones
+          </h3>
+          <span id="edit-dashboard-hint" class="text-xs text-brand-400 hidden font-semibold">Modo Edición: Activa u oculta módulos</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="dashboard-grid"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN PRENDAS -->
+    <section id="tab-prendas" class="tab-view space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-shirt text-brand-500"></i> Administrar Prendas Inteligentes
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Selecciona cuál prenda tienes puesta en este momento.</p>
+        </div>
+        <button onclick="openAddGarmentModal()" class="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-slate-950 font-bold text-xs rounded-2xl transition shadow-lg shadow-brand-500/20 flex items-center gap-2">
+          <i class="fa-solid fa-plus"></i> Vincular Nueva Prenda
+        </button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="registered-garments-list"></div>
+    </section>
+
+    <!-- SECCIÓN DATOS -->
+    <section id="tab-datos" class="tab-view space-y-6">
+      <div class="glass-card rounded-3xl p-5 space-y-4">
+        <h4 class="font-bold text-sm text-white flex items-center gap-2">
+          <i class="fa-solid fa-chart-area text-brand-500"></i> Evolución en Tiempo Real (FC vs Temperatura)
+        </h4>
+        <div class="h-64 w-full relative"><canvas id="mainTrendsChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN SEGURIDAD -->
+    <section id="tab-seguridad" class="tab-view space-y-6">
+      <div class="glass-card rounded-3xl p-6 space-y-4">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i class="fa-solid fa-users text-brand-500"></i> Contactos de Emergencia Autorizados
+        </h3>
+        <div class="space-y-3" id="emergency-contacts-list"></div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN PERFIL -->
+    <section id="tab-perfil" class="tab-view space-y-6">
+      <div class="glass-card rounded-3xl p-6 space-y-4">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i class="fa-solid fa-lock text-brand-500"></i> Privacidad y Mis Datos
+        </h3>
+        <p class="text-xs text-slate-400">100% Cifrado Local. Sin rastreo satelital.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- BOTTOM NAVIGATION BAR -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 z-40 py-2 px-3">
+    <div class="max-w-lg mx-auto flex items-center justify-around">
+      <button onclick="switchTab('inicio')" id="nav-btn-inicio" class="nav-btn flex flex-col items-center gap-1 text-brand-400 transition font-bold">
+        <i class="fa-solid fa-house text-lg"></i><span class="text-[10px]">Inicio</span>
+      </button>
+      <button onclick="switchTab('prendas')" id="nav-btn-prendas" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-shirt text-lg"></i><span class="text-[10px]">Prendas</span>
+      </button>
+      <button onclick="switchTab('datos')" id="nav-btn-datos" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-chart-simple text-lg"></i><span class="text-[10px]">Datos</span>
+      </button>
+      <button onclick="switchTab('seguridad')" id="nav-btn-seguridad" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-shield-cat text-lg"></i><span class="text-[10px]">Seguridad</span>
+      </button>
+      <button onclick="switchTab('perfil')" id="nav-btn-perfil" class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-user-gear text-lg"></i><span class="text-[10px]">Perfil</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MODALS -->
+  <div id="sos-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+    <div class="glass-card rounded-3xl max-w-md w-full p-6 space-y-4 border border-rose-500/50 text-center shadow-2xl">
+      <h3 class="font-extrabold text-xl text-white">Confirmar Solicitud de Ayuda</h3>
+      <div class="flex items-center gap-2 pt-2">
+        <button onclick="closeSOSModal()" class="flex-1 py-3 rounded-2xl bg-slate-800 text-slate-200 text-xs font-bold">Cancelar</button>
+        <button onclick="sendEmergencyAlert()" class="flex-1 py-3 rounded-2xl bg-rose-600 text-white text-xs font-extrabold">SÍ, SOLICITAR AYUDA</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
